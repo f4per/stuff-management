@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* Custom styling */
+      body {
+        background-color: #f8f9fa; /* Light gray background */
+      }
+      .navbar {
+        background-color: #343a40; /* Dark gray background for navbar */
+      }
+      .navbar-nav .nav-link {
+        color: #fff; /* White text for nav links */
+      }
+      .navbar-nav .nav-link:hover {
+        color: #ccc; /* Lighter gray on hover for nav links */
+      }
+      .table {
+        background-color: #fff; /* White background for table */
+      }
+      .form-control {
+        border-color: #ced4da; /* Light gray border for inputs */
+      }
+      .btn-primary {
+        background-color: #343a40; /* Dark gray background for primary buttons */
+        border-color: #343a40; /* Dark gray border for primary buttons */
+      }
+      .btn-primary:hover {
+        background-color: #23272b; /* Darker gray on hover for primary buttons */
+        border-color: #1d2124; /* Darker gray on hover for primary buttons */
+      }
+      .btn-danger {
+        background-color: #dc3545; /* Red background for danger buttons */
+        border-color: #dc3545; /* Red border for danger buttons */
+      }
+      .btn-danger:hover {
+        background-color: #c82333; /* Darker red on hover for danger buttons */
+        border-color: #bd2130; /* Darker red on hover for danger buttons */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="category.html">Category</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container mt-5">
+      <div class="row">
+        <div class="col-md-4">
+          <input
+            type="text"
+            class="form-control mb-2"
+            placeholder="Name of category"
+            id="name"
+          />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6"></div>
+        <div class="col-md-6 text-right">
+          <button
+            type="button"
+            class="btn btn-primary"
+            onclick="SaveStuff()"
+            id="saveButton"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+
+      <table class="table mt-4">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Name Of Category</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="result">
+          <tr>
+            <td>1</td>
+            <td>Motorcycle</td>
+            <td>
+              <button
+                type="button"
+                class="btn btn-danger"
+                onclick="Delete('${category.id}')"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bootstrap JS (Optional, if needed) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Axios (Optional, if needed) -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script>
+      const GetStuff = async () => {
+        await axios
+          .get("http://localhost:3000/categories")
+          .then((response) => {
+            console.log(response.data);
+            const stuffs = response.data;
+            let bucket = "";
+            stuffs.forEach((categories, index) => {
+              bucket += `
+              <tr>
+                  <td>${index + 1}</td>
+                  <td>${categories.name}</td>
+                  <td>
+                    <button type="button" class="btn btn-secondary" onclick="EditData('${
+                      categories.id
+                    }')">Edit</button>
+                    <button type="button" class="btn btn-danger" onclick="Delete('${
+                      categories.id
+                    }')">Delete</button>
+                  </td>
+              </tr>`;
+            });
+
+            document.getElementById("result").innerHTML = bucket;
+          })
+          .catch((error) => {
+            alert(error.message);
+          });
+      };
+
+      GetStuff();
+
+      const SaveStuff = async () => {
+        let name = document.getElementById("name").value;
+
+        await axios
+          .post("http://localhost:3000/categories", {
+            name: name,
+          })
+          .then((response) => {
+            console.log(response);
+            alert("Data Berhasil");
+            GetStuff();
+          })
+          .catch((error) => {
+            alert(error.message);
+          });
+      };
+
+      const Delete = async (id) => {
+        const confirmVal = confirm("Apakah data ingin dihapus?");
+        if (confirmVal) {
+          await axios
+            .delete(`http://localhost:3000/categories/${id}`)
+            .then((Response) => {
+              console.log(Response);
+              GetStuff();
+            })
+            .catch((error) => {
+              alert(error.message);
+            });
+        }
+      };
+
+      const EditData = async (id) => {
+        await axios
+          .get(`http://localhost:3000/categories/${id}`)
+          .then((response) => {
+            const data = response.data;
+            document.getElementById("name").value = data.name;
+
+            // Change Save button to Update button
+            const saveButton = document.getElementById("saveButton");
+            saveButton.innerText = "Update";
+            saveButton.onclick = () => UpdateStuff(id); // Change onclick behavior to call UpdateStuff
+          })
+          .catch((error) => {
+            alert(error.message);
+          });
+      };
+
+      const UpdateStuff = async (id) => {
+        let name = document.getElementById("name").value;
+
+        await axios
+          .put(`http://localhost:3000/categories/${id}`, {
+            name: name,
+          })
+          .then((response) => {
+            console.log(response);
+            GetStuff(); // Refresh the list after updating
+            // Reset input fields
+            document.getElementById("name").value = "";
+
+            // Change Update button back to Save button
+            const saveButton = document.getElementById("saveButton");
+            saveButton.innerHTML = "Save";
+            saveButton.onclick = SaveStuff; // Change onclick behavior back to SaveStuff
+          })
+          .catch((error) => {
+            alert(error.message);
+          });
+      };
+    </script>
+  </body>
+</html>

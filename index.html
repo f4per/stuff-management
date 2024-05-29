@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* Monochrome theme styling */
+      body {
+        background-color: #f8f9fa;
+        font-family: Helvetica;
+      }
+      .navbar {
+        background-color: #343a40;
+      }
+      .navbar-nav .nav-link {
+        color: #fff;
+      }
+      .navbar-nav .nav-link:hover {
+        color: #ccc;
+      }
+      .btn-category {
+        background-color: #6c757d;
+        border-color: #6c757d;
+      }
+      .btn-category:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+      }
+
+      .custom-bold {
+        font-weight: bold !important; /* !important to override Bootstrap's styles */
+      }
+
+      .custom-text-color {
+        color: #fff !important; /* !important to override Bootstrap's styles */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <a class="navbar-brand custom-bold custom" href="#">STUFF MANAGEMENT</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link custom-text-color" href="#">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link custom-text-color" href="category.html"
+              >Category</a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container mt-5">
+      <div class="row">
+        <div class="col-md-4">
+          <input
+            type="text"
+            class="form-control mb-2"
+            placeholder="Name of stuff"
+            id="name"
+          />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <input
+            type="number"
+            class="form-control mb-2"
+            placeholder="Price of stuff"
+            id="price"
+          />
+        </div>
+        <div class="col-md-4">
+          <select class="form-control mb-2" id="category">
+            <option value="Motocycle">Motocycle</option>
+            <option value="Electronics">Electronics</option>
+          </select>
+        </div>
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="SaveStuff()"
+          id="saveButton"
+        >
+          Save
+        </button>
+      </div>
+      <div class="row">
+        <div class="col-md-6"></div>
+      </div>
+
+      <table class="table mt-4">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="result"></tbody>
+        <tfoot>
+          <tr>
+            <th colspan="3" class="text-right">Total</th>
+            <th id="totalPrice">$0</th>
+            <th></th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Bootstrap JS (Optional, if needed) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Axios (Optional, if needed) -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script>
+      const GetStuff = async () => {
+        try {
+          const response = await axios.get("http://localhost:3000/stuff");
+          const stuffs = response.data;
+          let bucket = "";
+          let total = 0;
+
+          stuffs.forEach((stuff, index) => {
+            bucket += `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${stuff.name}</td>
+              <td>${stuff.category}</td>
+              <td>$${stuff.price}</td>
+              <td>
+                <button type="button" class="btn btn-secondary" onclick="EditData('${
+                  stuff.id
+                }')">Edit</button>
+                <button type="button" class="btn btn-danger" onclick="Delete('${
+                  stuff.id
+                }')">Delete</button>
+              </td>
+            </tr>`;
+            total += parseInt(stuff.price);
+          });
+
+          document.getElementById("result").innerHTML = bucket;
+          document.getElementById("totalPrice").innerText = `$${total.toFixed(
+            0
+          )}`;
+        } catch (error) {
+          alert("Failed to fetch data: " + error.message);
+        }
+      };
+
+      GetStuff();
+
+      const GetCategory = async () => {
+        try {
+          const response = await axios.get("http://localhost:3000/categories");
+          const categories = response.data;
+          let bucket = "";
+
+          categories.forEach((category, index) => {
+            bucket += `<option value="${category.name}">${category.name}</option>`;
+          });
+
+          document.getElementById("category").innerHTML = bucket;
+        } catch (error) {
+          alert("Failed to fetch data: " + error.message);
+        }
+      };
+
+      GetCategory();
+
+      const SaveStuff = async () => {
+        let name = document.getElementById("name").value;
+        let price = document.getElementById("price").value;
+        let category = document.getElementById("category").value;
+
+        await axios
+          .post("http://localhost:3000/stuff", { name, price, category })
+          .then((response) => {
+            console.log(response);
+            GetStuff();
+          })
+          .catch((error) => {
+            alert(error.message);
+          });
+      };
+
+      const Delete = async (id) => {
+        const confirmVal = confirm("Apakah data ingin dihapus?");
+        if (confirmVal) {
+          await axios
+            .delete(`http://localhost:3000/stuff/${id}`)
+            .then((Response) => {
+              console.log(Response);
+              GetStuff();
+            })
+            .catch((error) => {
+              alert(error.message);
+            });
+        }
+      };
+
+      const EditData = async (id) => {
+        await axios
+          .get(`http://localhost:3000/stuff/${id}`)
+          .then((response) => {
+            const data = response.data;
+            document.getElementById("name").value = data.name;
+            document.getElementById("price").value = data.price;
+            document.getElementById("category").value = data.category;
+            const saveButton = document.getElementById("saveButton");
+            saveButton.innerText = "Update";
+            saveButton.onclick = () => UpdateStuff(id);
+          })
+          .catch((error) => {
+            alert(error.message);
+          });
+      };
+
+      const UpdateStuff = async (id) => {
+        let name = document.getElementById("name").value;
+        let price = document.getElementById("price").value;
+        let category = document.getElementById("category").value;
+
+        await axios
+          .put(`http://localhost:3000/stuff/${id}`, { name, price, category })
+          .then((response) => {
+            console.log(response);
+            GetStuff();
+            document.getElementById("name").value = "";
+            document.getElementById("price").value = "";
+            document.getElementById("category").value = "Furniture";
+            const saveButton = document.getElementById("saveButton");
+            saveButton.innerHTML = "Save";
+            saveButton.onclick = SaveStuff;
+          })
+          .catch((error) => {
+            alert(error.message);
+          });
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "stuff": [
+    {
+      "name": "BMW S1000RR",
+      "price": "10000",
+      "category": "Motorcycle",
+      "id": "ab52"
+    },
+    {
+      "id": "32b2",
+      "name": "BMW S1000",
+      "price": "5000",
+      "category": "Motorcycle"
+    }
+  ],
+  "categories": [
+    {
+      "name": "Motorcycle",
+      "id": "f7e8"
+    },
+    {
+      "name": "Sparepart",
+      "id": "8038"
+    },
+    {
+      "id": "bb03",
+      "name": "Body"
+    },
+    {
+      "id": "1ed5",
+      "name": "Variasi"
+    }
+  ]
+}
